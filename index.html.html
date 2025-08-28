@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SB & Sons Cosmetics Store</title>
+  <!-- ====== Fonts & Basic Reset ====== -->
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-2: #1d4ed8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --accent: #e11d48;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif; color: var(--text); background: var(--bg); }
+
+    /* ====== Header ====== */
+    header { position: sticky; top: 0; z-index: 20; background: linear-gradient(90deg, #0f172a 0%, #111827 100%); color: #fff; }
+    .nav { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .2px; }
+    .brand-logo { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: #111827; display: grid; place-items: center; font-weight: 900; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .mini { font-size: 12px; opacity: .85; }
+
+    .btn { border: 0; padding: 10px 14px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-2); }
+    .btn-outline { background: transparent; color: #fff; border: 1px solid #374151; }
+
+    /* ====== Layout ====== */
+    .wrap { max-width: 1100px; margin: 22px auto; padding: 0 18px; }
+
+    .hero { background: var(--card); border-radius: var(--radius); padding: 16px; display: grid; gap: 10px; grid-template-columns: 1fr; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    .hero h1 { margin: 0; font-size: 22px; }
+    .hero p { margin: 0; color: var(--muted); }
+
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); margin-top: 18px; }
+
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: 0 6px 18px rgba(0,0,0,.06); padding: 14px; display: grid; gap: 10px; }
+    .card img { width: 100%; height: 175px; object-fit: cover; border-radius: 12px; background: #f3f4f6; }
+    .price { font-weight: 800; color: var(--success); }
+    .muted { color: var(--muted); font-size: 12px; }
+
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row input[type="number"] { width: 74px; padding: 8px; border-radius: 10px; border: 1px solid #e5e7eb; }
+
+    .cart-bar { position: sticky; bottom: 12px; background: #111827; color: #fff; padding: 10px 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+
+    /* ====== Cart Drawer ====== */
+    .drawer { position: fixed; inset: 0; display: none; }
+    .drawer.open { display: grid; grid-template-columns: 1fr; }
+    .drawer .backdrop { background: rgba(0,0,0,.45); }
+    .drawer .panel { background: #fff; position: absolute; right: 0; top: 0; bottom: 0; width: min(520px, 100%); padding: 18px; overflow: auto; }
+    .cart-item { display: grid; grid-template-columns: 64px 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .cart-item img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; background: #f3f4f6; }
+    .cart-item .title { font-weight: 700; }
+    .cart-item .meta { color: var(--muted); font-size: 12px; }
+    .x { background: transparent; border: 0; cursor: pointer; color: var(--danger); font-weight: 800; font-size: 16px; padding: 8px; }
+
+    .totals { display: grid; gap: 6px; margin-top: 12px; }
+    .totals .row { justify-content: space-between; }
+    .totals .grand { font-weight: 900; font-size: 18px; }
+
+    /* ====== Footer / Help ====== */
+    footer { margin: 30px 0 80px; color: var(--muted); font-size: 14px; }
+    .help { display: grid; gap: 10px; grid-template-columns: 1fr; }
+    .help .card { padding: 16px; }
+    .help .btn { width: 100%; }
+
+    @media (min-width: 640px) {
+      .hero { grid-template-columns: 1fr auto; align-items: center; }
+      .help { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+
+  <!-- jsPDF + AutoTable for neat invoice tables -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <div class="brand-logo">SB</div>
+        <div>
+          <div>SB & Sons Cosmetics</div>
+          <div class="mini">Quality skincare & beauty</div>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-outline" id="trackBtn" title="Track your order on WhatsApp">Track Order</button>
+        <button class="btn btn-primary" id="openCart">Cart (0)</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <h1>Welcome to SB & Sons Cosmetics</h1>
+        <p>Shop original products with fast WhatsApp checkout, downloadable tax invoice, and order tracking.</p>
+      </div>
+      <div>
+        <div class="cart-bar">
+          <div class="mini">WhatsApp Orders & Support</div>
+          <strong>+92 304 067 0263</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" id="productGrid"></section>
+
+    <section class="help">
+      <div class="card">
+        <h3 style="margin:6px 0 8px">Have an issue?</h3>
+        <p class="muted">Report a complaint directly on WhatsApp. Please include your Invoice No. for quick help.</p>
+        <button class="btn" style="background:var(--danger);color:#fff" id="complaintBtn">Send Complaint on WhatsApp</button>
+      </div>
+      <div class="card">
+        <h3 style="margin:6px 0 8px">Share a review</h3>
+        <p class="muted">Tell us how we did! Your feedback helps us improve.</p>
+        <button class="btn" style="background:var(--warning);color:#111827" id="reviewBtn">Send Review on WhatsApp</button>
+      </div>
+      <div class="card">
+        <h3 style="margin:6px 0 8px">Need updates later?</h3>
+        <p class="muted">This is a single-file store. Update prices or images anytime—just edit this file or the images folder.</p>
+        <a class="btn" style="background:#111827;color:#fff;text-align:center;display:inline-block" href="#how-to-host">How to get a permanent URL</a>
+      </div>
+    </section>
+
+    <footer id="how-to-host" class="wrap">
+      <div class="card">
+        <h3 style="margin:6px 0 8px">How to publish this store (free)</h3>
+        <ol style="margin:0 0 0 18px; padding:0; line-height:1.6">
+          <li>Create a free GitHub account ? make a repo ? upload this HTML file and an <code>images/</code> folder with your pictures.</li>
+          <li>Open repo Settings ? Pages ? Source: <b>Deploy from a branch</b> (branch: <b>main</b>, folder: <b>/root</b>) ? Save.</li>
+          <li>Your permanent URL (GitHub Pages) will appear—share it with customers. Update any time by uploading new images or editing prices.</li>
+        </ol>
+        <p class="muted" style="margin-top:8px">Alternative: Drag-and-drop this file to <b>netlify.com</b> for another free URL.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ====== Cart Drawer ====== -->
+  <div class="drawer" id="drawer">
+    <div class="backdrop" onclick="toggleDrawer(false)"></div>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h2 style="margin:0">Your Cart</h2>
+        <button class="x" onclick="toggleDrawer(false)" title="Close">×</button>
+      </div>
+      <div id="cartItems"></div>
+
+      <div class="totals">
+        <div class="row"><span>Subtotal</span><strong id="subTotal">Rs. 0</strong></div>
+        <div class="row"><span>Tax (<span id="taxRateLabel"></span>)</span><strong id="taxAmt">Rs. 0</strong></div>
+        <div class="row grand"><span>Grand Total</span><span id="grandTotal">Rs. 0</span></div>
+      </div>
+
+      <div style="display:grid; gap:10px; margin-top:14px">
+        <button class="btn btn-primary" onclick="checkout()">Checkout • WhatsApp + PDF Invoice</button>
+        <button class="btn" style="background:#10b981;color:#fff" onclick="downloadInvoiceOnly()">Download Invoice Only (PDF)</button>
+        <button class="btn" style="background:#f3f4f6;color:#111827" onclick="clearCart()">Clear Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CONFIG ======
+    const WHATSAPP_NUMBER = "923040670263"; // no plus sign
+    const TAX_RATE = 0.10; // 10%
+    const INVOICE_PREFIX = "SB078607X";
+
+    // ====== PRODUCT CATALOG (edit prices/images anytime) ======
+    const PRODUCTS = [
+      { id: "yumna-cream", name: "Yumna Rice Beauty Cream", price: 440, img: "images/yumna_rice_cream.jpg" },
+      { id: "yumna-polish", name: "Yumna Rice Skin Polish", price: 610, img: "images/yumna_rice_polish.jpg" },
+      { id: "messe-cream", name: "Messe Beauty Cream", price: 450, img: "images/messe_beauty_cream.jpg" },
+      { id: "messe-facewash", name: "Messe Milky Face Wash", price: 530, img: "images/messe_milky_facewash.jpg" },
+      { id: "messe-rose", name: "Messe Pure Rose Water", price: 210, img: "images/messe_rose_water.jpg" },
+      { id: "gly-small", name: "Messe Glycerin (Small)", price: 110, img: "images/messe_glycerin_small.jpg" },
+      { id: "gly-medium", name: "Messe Glycerin (Medium)", price: 160, img: "images/messe_glycerin_medium.jpg" },
+      { id: "gly-large", name: "Messe Glycerin (Large)", price: 210, img: "images/messe_glycerin_large.jpg" }
+    ];
+
+    // ====== STATE ======
+    const cart = []; // {id, name, price, qty, discPerPiece, img}
+    let lastInvoiceNo = null; // used for tracking/feedback templates
+
+    // ====== RENDER PRODUCTS ======
+    function renderProducts() {
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = PRODUCTS.map((p, i) => `
+        <div class="card">
+          <img src="${p.img}" alt="${p.name}" onerror="this.src='data:image/svg+xml;utf8,${encodeURIComponent(placeholderSVG(p.name))}'" />
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
+            <div>
+              <div style="font-weight:800">${p.name}</div>
+              <div class="price">Rs. ${p.price}</div>
+            </div>
+          </div>
+          <div class="row">
+            <label class="muted">Qty</label>
+            <input type="number" id="qty-${p.id}" min="1" value="1" />
+            <label class="muted">Disc/pc</label>
+            <input type="number" id="disc-${p.id}" min="0" value="0" />
+          </div>
+          <button class="btn btn-primary" onclick="addToCart('${p.id}')">Add to Cart</button>
+        </div>
+      `).join('');
+    }
+
+    function placeholderSVG(text) {
+      const t = encodeURIComponent(text);
+      return `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'>
+        <rect width='100%' height='100%' fill='%23e5e7eb'/>
+        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='Arial' font-size='20'>${t}</text>
+      </svg>`;
+    }
+
+    // ====== CART LOGIC ======
+    function addToCart(id) {
+      const p = PRODUCTS.find(x => x.id === id);
+      const qty = Math.max(1, parseInt(document.getElementById(`qty-${id}`).value || '1'));
+      const discPerPiece = Math.max(0, parseFloat(document.getElementById(`disc-${id}`).value || '0'));
+
+      // If exists, update qty/discount; else push
+      const existing = cart.find(x => x.id === id && x.discPerPiece === discPerPiece);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cart.push({ id: p.id, name: p.name, price: p.price, qty, discPerPiece, img: p.img });
+      }
+      updateCartUI();
+      toggleDrawer(true);
+    }
+
+    function removeFromCart(idx) {
+      cart.splice(idx, 1);
+      updateCartUI();
+    }
+
+    function updateItem(idx, field, value) {
+      const item = cart[idx];
+      if (!item) return;
+      if (field === 'qty') item.qty = Math.max(1, parseInt(value || '1'));
+      if (field === 'disc') item.discPerPiece = Math.max(0, parseFloat(value || '0'));
+      updateCartUI();
+    }
+
+    function computeTotals() {
+      const sub = cart.reduce((sum, it) => sum + (it.price - it.discPerPiece) * it.qty, 0);
+      const tax = sub * TAX_RATE;
+      const grand = sub + tax;
+      return { sub, tax, grand };
+    }
+
+    function updateCartUI() {
+      const items = document.getElementById('cartItems');
+      if (!cart.length) {
+        items.innerHTML = `<p class='muted'>Your cart is empty.</p>`;
+      } else {
+        items.innerHTML = cart.map((it, idx) => `
+          <div class="cart-item">
+            <img src="${it.img}" alt="${it.name}" onerror="this.src='data:image/svg+xml;utf8,${encodeURIComponent(placeholderSVG(it.name))}'" />
+            <div>
+              <div class="title">${it.name}</div>
+              <div class="meta">Rs. ${it.price} per piece</div>
+              <div class="row" style="margin-top:6px">
+                <label class="muted">Qty</label>
+                <input type="number" value="${it.qty}" min="1" onchange="updateItem(${idx}, 'qty', this.value)" />
+                <label class="muted">Disc/pc</label>
+                <input type="number" value="${it.discPerPiece}" min="0" onchange="updateItem(${idx}, 'disc', this.value)" />
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Line total</div>
+              <div><strong>Rs. ${(((it.price - it.discPerPiece) * it.qty).toFixed(2))}</strong></div>
+              <button class="x" title="Remove" onclick="removeFromCart(${idx})">×</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      const { sub, tax, grand } = computeTotals();
+      document.getElementById('subTotal').textContent = `Rs. ${sub.toFixed(2)}`;
+      document.getElementById('taxAmt').textContent = `Rs. ${tax.toFixed(2)}`;
+      document.getElementById('grandTotal').textContent = `Rs. ${grand.toFixed(2)}`;
+      document.getElementById('taxRateLabel').textContent = `${(TAX_RATE*100).toFixed(0)}%`;
+      document.getElementById('openCart').textContent = `Cart (${cart.length})`;
+    }
+
+    function clearCart() {
+      cart.length = 0;
+      updateCartUI();
+    }
+
+    function toggleDrawer(open) {
+      const d = document.getElementById('drawer');
+      d.classList.toggle('open', !!open);
+    }
+
+    document.getElementById('openCart').addEventListener('click', () => toggleDrawer(true));
+
+    // ====== INVOICE / CHECKOUT ======
+    function generateInvoiceNumber() {
+      const ts = new Date();
+      // add YYMMDD + last 5 of ms for uniqueness
+      const y = ts.getFullYear().toString().slice(-2);
+      const m = String(ts.getMonth()+1).padStart(2,'0');
+      const d = String(ts.getDate()).padStart(2,'0');
+      const rand = Math.floor(Math.random()*90000)+10000; // 5 digits
+      return `${INVOICE_PREFIX}${y}${m}${d}${rand}`;
+    }
+
+    function buildInvoiceDoc(invoiceNo) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Header / Logo text
+      doc.setFontSize(18);
+      doc.text('SB & Sons Cosmetics', 14, 16);
+      doc.setFontSize(11);
+      doc.text('WhatsApp: +92 304 067 0263', 14, 24);
+      doc.text(`Invoice No: ${invoiceNo}`, 14, 30);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 36);
+
+      // Table
+      const head = [['Product', 'Qty', 'Price', 'Disc/pc', 'Line Total']];
+      const body = cart.map(it => {
+        const line = (it.price - it.discPerPiece) * it.qty;
+        return [it.name, String(it.qty), `Rs. ${it.price}`, `Rs. ${it.discPerPiece}`, `Rs. ${line.toFixed(2)}`];
+      });
+
+      doc.autoTable({
+        head, body,
+        startY: 44,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [17, 24, 39] },
+        columnStyles: { 0: { cellWidth: 78 }, 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } },
+      });
+
+      const { sub, tax, grand } = computeTotals();
+      let y = doc.lastAutoTable.finalY + 8;
+      doc.setFontSize(11);
+      doc.text(`Subtotal: Rs. ${sub.toFixed(2)}`, 140, y, { align: 'right' });
+      y += 6;
+      doc.text(`Tax (${(TAX_RATE*100).toFixed(0)}%): Rs. ${tax.toFixed(2)}`, 140, y, { align: 'right' });
+      y += 6;
+      doc.setFont(undefined, 'bold');
+      doc.text(`Grand Total: Rs. ${grand.toFixed(2)}`, 140, y, { align: 'right' });
+      doc.setFont(undefined, 'normal');
+      y += 12;
+
+      doc.setFontSize(10);
+      doc.text('Thank you for shopping with us! For any concerns or returns, WhatsApp us with your Invoice No.', 14, y);
+
+      return doc;
+    }
+
+    function whatsappEncode(str){
+      return encodeURIComponent(str);
+    }
+
+    function buildWhatsAppMessage(invoiceNo){
+      const lines = [];
+      lines.push(`?? *SB & Sons Cosmetics*`);
+      lines.push(`Invoice No: ${invoiceNo}`);
+      lines.push(`Date: ${new Date().toLocaleDateString()}`);
+      lines.push('');
+      cart.forEach(it => {
+        const line = (it.price - it.discPerPiece) * it.qty;
+        lines.push(`• ${it.name} | Qty: ${it.qty} | Price: Rs.${it.price} | Disc/pc: Rs.${it.discPerPiece} | Line: Rs.${line.toFixed(2)}`);
+      });
+      const { sub, tax, grand } = computeTotals();
+      lines.push('');
+      lines.push(`Subtotal: Rs.${sub.toFixed(2)}`);
+      lines.push(`Tax (${(TAX_RATE*100).toFixed(0)}%): Rs.${tax.toFixed(2)}`);
+      lines.push(`Grand Total: Rs.${grand.toFixed(2)}`);
+      lines.push('');
+      lines.push('Please confirm my order.');
+      return lines.join('\n');
+    }
+
+    function sendWhatsApp(text){
+      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappEncode(text)}`;
+      window.open(url, '_blank');
+    }
+
+    function checkout(){
+      if(!cart.length){ alert('Your cart is empty!'); return; }
+      const invoiceNo = generateInvoiceNumber();
+      lastInvoiceNo = invoiceNo;
+      const doc = buildInvoiceDoc(invoiceNo);
+      doc.save(`Invoice_${invoiceNo}.pdf`);
+      const message = buildWhatsAppMessage(invoiceNo);
+      sendWhatsApp(message);
+    }
+
+    function downloadInvoiceOnly(){
+      if(!cart.length){ alert('Your cart is empty!'); return; }
+      const invoiceNo = generateInvoiceNumber();
+      lastInvoiceNo = invoiceNo;
+      const doc = buildInvoiceDoc(invoiceNo);
+      doc.save(`Invoice_${invoiceNo}.pdf`);
+      alert('Invoice downloaded. You can also send/track on WhatsApp from the buttons on the page.');
+    }
+
+    // ====== Feedback / Complaint / Tracking Shortcuts ======
+    document.getElementById('trackBtn').addEventListener('click', () => {
+      const inv = lastInvoiceNo ? lastInvoiceNo : prompt('Enter your Invoice No. to track:');
+      if(!inv) return;
+      const txt = `Hello SB & Sons, I want to track my order. Invoice No: ${inv}`;
+      sendWhatsApp(txt);
+    });
+
+    document.getElementById('complaintBtn').addEventListener('click', () => {
+      const inv = lastInvoiceNo ? lastInvoiceNo : prompt('Enter your Invoice No. (optional):');
+      const txt = `Complaint regarding my order${inv? ' (Invoice No: '+inv+')' : ''}:\n- Issue: \n- Details:`;
+      sendWhatsApp(txt);
+    });
+
+    document.getElementById('reviewBtn').addEventListener('click', () => {
+      const inv = lastInvoiceNo ? lastInvoiceNo : '';
+      const txt = `Review for SB & Sons${inv? ' (Invoice No: '+inv+')' : ''}:\n- Rating (1-5): \n- Comments:`;
+      sendWhatsApp(txt);
+    });
+
+    // ====== INIT ======
+    renderProducts();
+    updateCartUI();
+  </script>
+</body>
+</html>
